@@ -423,7 +423,7 @@ class TheHive:
         if len(self.thehive_case_status_mapping) > 0:
             for case_status_mapping in self.thehive_case_status_mapping:
                 case_status_mapping_split = case_status_mapping.split(":")
-                if case.get("extendedStatus") == case_status_mapping_split[0]:
+                if case.get("status") == case_status_mapping_split[0]:
                     opencti_case_status = case_status_mapping_split[1]
 
         opencti_case_user = None
