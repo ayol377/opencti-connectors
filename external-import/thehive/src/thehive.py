@@ -430,7 +430,7 @@ class TheHive:
         if len(self.thehive_user_mapping) > 0:
             for user_mapping in self.thehive_user_mapping:
                 user_mapping_split = user_mapping.split(":")
-                if case.get("owner") == user_mapping_split[0]:
+                if case.get("assignee") == user_mapping_split[0]:
                     opencti_case_user = user_mapping_split[1]
 
         stix_case = CustomObjectCaseIncident(
