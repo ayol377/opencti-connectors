@@ -210,7 +210,7 @@ class TheHive:
         bundle_objects.append(stix_incident)
 
         # Handle observables and relationships
-        for observable in alert.get("artifacts", []):
+        for observable in alert.get("observables", []):
             stix_observable, stix_relation = self.process_observables_and_relations(
                 observable, markings, stix_incident
             )
