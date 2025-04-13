@@ -161,10 +161,10 @@ class TheHive:
 
     def create_stix_alert_incident(self, alert, markings, created, modified):
         """Function to create STIX incident from alert."""
-        if alert.get('source', '') == 'SentinelOne':
+        if alert.get('source', '') != '':
             references = stix2.ExternalReference(
-                source_name="cve",
-                external_id="CVE-2016-1234"
+                source_name=alert.get('source', ''),
+                external_id=alert.get('SourceRef', '')
             )
         else:
             references = []
