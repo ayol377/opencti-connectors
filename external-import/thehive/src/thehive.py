@@ -161,6 +161,14 @@ class TheHive:
 
     def create_stix_alert_incident(self, alert, markings, created, modified):
         """Function to create STIX incident from alert."""
+        if alert.get('source', '') == 'SentinelOne':
+            references = stix2.ExternalReference(
+                source_name="cve",
+                external_id="CVE-2016-1234"
+            )
+        else:
+            references = []
+
         return stix2.Incident(
             id=Incident.generate_id(alert.get("title", ""), created),
             name=alert.get("title", ""),
@@ -178,6 +186,7 @@ class TheHive:
                 "severity": self.severity_mapping.get(alert.get("severity", ""), ""),
                 "incident_type": "alert",
             },
+            external_references=references
         )
 
     def generate_alert_bundle(self, alert):
