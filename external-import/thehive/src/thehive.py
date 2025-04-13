@@ -228,6 +228,13 @@ class TheHive:
                 bundle_objects.append(stix_observable)
                 bundle_objects.append(stix_relation)
 
+        # Process ttps
+        try:
+            ttps = self.process_alert_ttps(alert)
+            bundle_objects.extend(ttps)
+        except Exception as e:
+            self.helper.log_error(f"Error processing ttps: {str(e)}")
+
         # Create STIX bundle
         try:
             bundle = self.helper.stix2_create_bundle(bundle_objects)
@@ -263,6 +270,13 @@ class TheHive:
         stix_case = self.process_main_case(case, markings, case_object_refs)
         bundle_objects.append(stix_case)
 
+        # Process ttps
+        try:
+            ttps = self.process_case_ttps(case)
+            bundle_objects.extend(ttps)
+        except Exception as e:
+            self.helper.log_error(f"Error processing ttps: {str(e)}")
+
         # Process tasks
         bundle_objects.extend(self.process_tasks(case, stix_case))
 
@@ -276,6 +290,7 @@ class TheHive:
         except Exception as e:
             self.helper.log_error(f"Error serializing STIX bundle for 'case': {str(e)}")
             return {}
+
 
     def generate_sighting(self, observable, stix_observable):
         """Generate a stix sighting from a provided observable and stix observable."""
@@ -429,6 +444,14 @@ class TheHive:
             int(case.get("_createdAt")) / 1000, DEFAULT_UTC_DATETIME
         )
 
+        sourcerefs = []
+        if case.get('source', '') != '':
+            sourcerefs.append(stix2.ExternalReference(
+                source_name="Hive",
+                external_id=case.get('_id', ''),
+                url=self.thehive_url + "/cases/" + case.get('_id', '') + "/details"
+            ))
+
         opencti_case_status = None
         if len(self.thehive_case_status_mapping) > 0:
             for case_status_mapping in self.thehive_case_status_mapping:
@@ -517,6 +540,30 @@ class TheHive:
             )
             return [], []
 
+    def process_case_ttps(self, case):
+        """Process ttps for current case."""
+        try:
+            case_id = case.get("_id")
+            response = self.thehive_api.case.find_procedures(case_id=case_id)
+            ttps = []
+            if response and len(response) > 0:
+                ttps_hive = response
+                for ttp in ttps_hive:
+                    ttps.append(stix2.AttackPattern(
+                        id=AttackPattern.generate_id(ttp.get("name")),
+                        type="attack-pattern",
+                        name=ttp.get("patternName"),
+                        description=ttp.get("description"),
+                    ))
+                return ttps
+            else:
+                return []
+        except Exception as e:
+            self.helper.log_error(
+                f"Error processing ttps for case: {case.get('title')} - {str(e)}"
+            )
+            return []
+
     def get_alert_observables(self, alert, markings):
         """Process all observables from an alert."""
         try:
@@ -540,6 +587,30 @@ class TheHive:
         except Exception as e:
             self.helper.log_error(
                 f"Error processing observables for alert: {alert.get('title')} - {str(e)}"
+            )
+            return []
+
+    def process_alert_ttps(self, alert):
+        """Process ttps for current case."""
+        try:
+            alert_id = alert.get("_id")
+            response = self.thehive_api.alert.find_procedures(alert_id=alert_id)
+            ttps = []
+            if response and len(response) > 0:
+                ttps_hive = response
+                for ttp in ttps_hive:
+                    ttps.append(stix2.AttackPattern(
+                        id=AttackPattern.generate_id(ttp.get("name")),
+                        type="attack-pattern",
+                        name=ttp.get("patternName"),
+                        description=ttp.get("description"),
+                    ))
+                return ttps
+            else:
+                return []
+        except Exception as e:
+            self.helper.log_error(
+                f"Error processing ttps for case: {case.get('title')} - {str(e)}"
             )
             return []
 
