@@ -210,7 +210,8 @@ class TheHive:
         bundle_objects.append(stix_incident)
 
         # Handle observables and relationships
-        for observable in alert.get("observables", []):
+        observables = self.get_alert_observables(alert, markings)
+        for observable in processed_observables:
             stix_observable, stix_relation = self.process_observables_and_relations(
                 observable, markings, stix_incident
             )
@@ -506,6 +507,32 @@ class TheHive:
                 f"Error processing observables for case: {case.get('title')} - {str(e)}"
             )
             return [], []
+
+    def get_alert_observables(self, alert, markings):
+        """Process all observables from an alert."""
+        try:
+            alert_id = alert.get("_id")
+            self.helper.log_info(f"!!! here the value of alert_id : {alert_id}")
+            response = self.thehive_api.alert.find_observables(alert_id=alert.get("_id"))
+
+            if response and len(response) > 0:
+                observables = response
+
+                self.helper.log_info(
+                    f"Got {len(observables)} observables for alert: {alert.get('title')}"
+                )
+
+                return observables
+            else:
+                self.helper.log_error(
+                    f"Failed to get observables for alert: {alert.get('title')}"
+                )
+                return []
+        except Exception as e:
+            self.helper.log_error(
+                f"Error processing observables for alert: {alert.get('title')} - {str(e)}"
+            )
+            return []
 
     def process_observables_and_relations(self, observable, markings, stix_incident):
         """Function to process observables and create related STIX relations."""
