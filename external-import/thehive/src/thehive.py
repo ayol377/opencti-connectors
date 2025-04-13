@@ -211,7 +211,7 @@ class TheHive:
 
         # Handle observables and relationships
         observables = self.get_alert_observables(alert, markings)
-        for observable in processed_observables:
+        for observable in observables:
             stix_observable, stix_relation = self.process_observables_and_relations(
                 observable, markings, stix_incident
             )
@@ -513,7 +513,7 @@ class TheHive:
         try:
             alert_id = alert.get("_id")
             self.helper.log_info(f"!!! here the value of alert_id : {alert_id}")
-            response = self.thehive_api.alert.find_observables(alert_id=alert.get("_id"))
+            response = self.thehive_api.alert.find_observables(alert_id=alert_id)
 
             if response and len(response) > 0:
                 observables = response
