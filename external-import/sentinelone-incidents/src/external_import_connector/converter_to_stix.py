@@ -295,8 +295,8 @@ class ConverterToStix:
                     type="file",
                     name=threat_info.get("threatName", ""),
                     hashes=hashes,
-                object_marking_refs=[stix2.TLP_RED],
-            )
+                    object_marking_refs=[stix2.TLP_RED],
+                )
             else:
                 observable = stix2.File(
                     type="file",
