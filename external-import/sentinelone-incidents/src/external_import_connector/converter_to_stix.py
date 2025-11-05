@@ -79,7 +79,7 @@ class ConverterToStix:
             labels=labels,
             created=created,
             external_references=[external_s1_ref] if external_s1_ref else None,
-            object_marking_refs=[stix2.TLP_RED],
+            object_marking_refs=[stix2.TLP_RED.id],
             custom_properties={"source": self.author.name},
         )
 
