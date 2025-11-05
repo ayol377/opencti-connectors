@@ -289,7 +289,7 @@ class ConverterToStix:
         hashes = {"SHA-256": sha256, "SHA-1": sha1, "MD5": md5}
 
         observable = stix2.File(
-            type=threat_info.get("fileExtensionType", "file"),
+            type="file",
             name=threat_info.get("threatName", ""),
             hashes=hashes,
             object_marking_refs=[stix2.TLP_RED],
