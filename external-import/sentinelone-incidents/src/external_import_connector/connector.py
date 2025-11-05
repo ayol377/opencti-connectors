@@ -217,7 +217,7 @@ class IncidentConnector:
             stix_objects.extend(incident_items)
 
             ### UserAccount + Relationship to Incident
-            account_items = self.stix_client.create_user_account_observable(
+            account_items = self.stix_client.create_user_account_observables(
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(account_items)
