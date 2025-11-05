@@ -224,9 +224,6 @@ class IncidentConnector:
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(account_items)
-            self.helper.log_info(
-                f"Added objects: {account_items}"
-            )
 
             ### List Of Notes
             s1_incident_notes = self.s1_client.fetch_incident_notes(s1_incident_id)
@@ -234,27 +231,19 @@ class IncidentConnector:
                 s1_incident_notes, cti_incident_id
             )
             stix_objects.extend(notes_items)
-            self.helper.log_info(
-                f"Added objects: {notes_items}"
-            )
 
             ### List Of Indicators  with Relationships to Incident
             endpoint_items = self.stix_client.create_endpoint_observable(
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(endpoint_items)
-            self.helper.log_info(
-                f"Added objects: {endpoint_items}"
-            )
+
 
             ### List Of Account Observables with Relationships to Incident
             account_items = self.stix_client.create_user_account_observables(
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(account_items)
-            self.helper.log_info(
-                f"Added objects: {account_items}"
-            )
 
             ### List Of Attack Patterns with Relationships to Incident and Sub Attack Patterns with
             ### Relationships to the Attack Patterns
@@ -262,9 +251,6 @@ class IncidentConnector:
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(attack_patterns_items)
-            self.helper.log_info(
-                f"Added objects: {attack_patterns_items}"
-            )
 
             ### Informative log of all created objects
             message = ""
@@ -274,8 +260,12 @@ class IncidentConnector:
                 message += ", UserAccount"
             if notes_items:
                 message += ", Notes"
-            if indicators_items:
-                message += ", Indicators"
+            if endpoint_items:
+                message += ", Endpoint"
+            if file_items:
+                message += ", File"
+            if account_items:
+                message += ", Account"
             if attack_patterns_items:
                 message += ", Attack Patterns"
             self.helper.connector_logger.info(
