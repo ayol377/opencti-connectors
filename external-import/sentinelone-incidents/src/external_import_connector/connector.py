@@ -230,7 +230,7 @@ class IncidentConnector:
             stix_objects.extend(notes_items)
 
             ### List Of Indicators  with Relationships to Incident
-            indicators_items = self.stix_client.create_hash_observables(
+            indicators_items = self.stix_client.create_file_observables(
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(indicators_items)
