@@ -215,12 +215,18 @@ class IncidentConnector:
 
             cti_incident_id = incident_items[0].get("id")
             stix_objects.extend(incident_items)
+            self.helper.log_info(
+                f"Added objects: {incident_items}"
+            )
 
             ### UserAccount + Relationship to Incident
             account_items = self.stix_client.create_user_account_observables(
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(account_items)
+            self.helper.log_info(
+                f"Added objects: {account_items}"
+            )
 
             ### List Of Notes
             s1_incident_notes = self.s1_client.fetch_incident_notes(s1_incident_id)
@@ -228,18 +234,27 @@ class IncidentConnector:
                 s1_incident_notes, cti_incident_id
             )
             stix_objects.extend(notes_items)
+            self.helper.log_info(
+                f"Added objects: {notes_items}"
+            )
 
             ### List Of Indicators  with Relationships to Incident
-            indicators_items = self.stix_client.create_file_observables(
+            endpoint_items = self.stix_client.create_endpoint_observable(
                 s1_incident, cti_incident_id
             )
-            stix_objects.extend(indicators_items)
+            stix_objects.extend(endpoint_items)
+            self.helper.log_info(
+                f"Added objects: {endpoint_items}"
+            )
 
             ### List Of Account Observables with Relationships to Incident
             account_items = self.stix_client.create_user_account_observables(
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(account_items)
+            self.helper.log_info(
+                f"Added objects: {account_items}"
+            )
 
             ### List Of Attack Patterns with Relationships to Incident and Sub Attack Patterns with
             ### Relationships to the Attack Patterns
@@ -247,6 +262,9 @@ class IncidentConnector:
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(attack_patterns_items)
+            self.helper.log_info(
+                f"Added objects: {attack_patterns_items}"
+            )
 
             ### Informative log of all created objects
             message = ""
