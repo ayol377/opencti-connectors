@@ -289,7 +289,6 @@ class ConverterToStix:
         hashes = {"SHA-256": sha256, "SHA-1": sha1, "MD5": md5}
 
         observable = stix2.File(
-            id=Indicator.generate_id(hashes),
             created_by_ref=self.author,
             type=threat_info.get("fileExtensionType", "file"),
             name=threat_info.get("threatName", ""),
