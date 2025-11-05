@@ -101,7 +101,7 @@ class ConverterToStix:
             "agentComputerName", ""
         )
         if not endpoint_name:
-            return None
+            return []
 
         account_name = s1_incident.get("agentRealtimeInfo", {}).get(
             "accountName", "unknown"
@@ -140,7 +140,7 @@ class ConverterToStix:
             "agentLastLoggedInUpn", ""
         )
         if not user_name:
-            return None
+            return []
 
         account_name = s1_incident.get("agentRealtimeInfo", {}).get(
             "accountName", "unknown"
