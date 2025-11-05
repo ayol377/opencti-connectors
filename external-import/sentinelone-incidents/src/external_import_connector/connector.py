@@ -127,8 +127,10 @@ class IncidentConnector:
             incident_notes = self.s1_client.fetch_incident_notes(incident_id)
             if incident_notes:
                 for note in incident_notes:
-                    if self.config.sign in note.get("text", ""):
-                        return True
+                    # if self.config.sign in note.get("text", ""):
+
+                    # Always import all incidents even without notes
+                    return True
             else:
                 return None
             return False
@@ -228,10 +230,16 @@ class IncidentConnector:
             stix_objects.extend(notes_items)
 
             ### List Of Indicators  with Relationships to Incident
-            indicators_items = self.stix_client.create_hash_indicators(
+            indicators_items = self.stix_client.create_hash_observables(
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(indicators_items)
+
+            ### List Of Account Observables with Relationships to Incident
+            account_items = self.stix_client.create_user_account_observables(
+                s1_incident, cti_incident_id
+            )
+            stix_objects.extend(account_items)
 
             ### List Of Attack Patterns with Relationships to Incident and Sub Attack Patterns with
             ### Relationships to the Attack Patterns

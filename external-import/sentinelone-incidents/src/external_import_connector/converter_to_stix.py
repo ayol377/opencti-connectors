@@ -64,6 +64,7 @@ class ConverterToStix:
             source_name="SentinelOne",
             url=f"{s1_url}incidents/threats/{incident_id}/overview",
             description="View Incident In SentinelOne",
+            external_id=incident_id,
         )
 
         name = incident_data.get("threatInfo", {}).get("threatName", "")
@@ -78,13 +79,13 @@ class ConverterToStix:
             labels=labels,
             created=created,
             external_references=[external_s1_ref] if external_s1_ref else None,
-            object_marking_refs=[stix2.TLP_RED.id],
+            object_marking_refs=[stix2.TLP_RED],
             custom_properties={"source": self.author.name},
         )
 
         return [incident]
 
-    def create_user_account_observable(
+    def create_endpoint_observable(
         self, s1_incident: dict, cti_incident_id: str
     ) -> list[stix2.UserAccount, stix2.Relationship]:
         """
@@ -93,7 +94,7 @@ class ConverterToStix:
         """
 
         self.helper.connector_logger.debug(
-            "Attempting to create UserAccount Observable"
+            "Attempting to create Endpoint Observable"
         )
 
         endpoint_name = s1_incident.get("agentRealtimeInfo", {}).get(
@@ -113,6 +114,55 @@ class ConverterToStix:
         endpoint_observable = stix2.UserAccount(
             account_type="hostname",
             user_id=endpoint_name,
+            object_marking_refs=[stix2.TLP_RED.id],
+            custom_properties={"description": desc},
+        )
+
+        endpoint_relationship = self.create_relationship(
+            endpoint_observable["id"], cti_incident_id, "related-to"
+        )
+
+        return [endpoint_observable, endpoint_relationship]
+
+    def create_user_account_observables(
+        self, s1_incident: dict, cti_incident_id: str
+    ) -> list[stix2.UserAccount, stix2.Relationship]:
+        """
+        Creates a Stix UserAccount Observable from a SentinelOne incident
+        alongside a relationship to the incident.
+        """
+
+        self.helper.connector_logger.debug(
+            "Attempting to create User Observable"
+        )
+
+        user_name = s1_incident.get("agentDetectionInfo", {}).get(
+            "agentLastLoggedInUpn", ""
+        )
+        if not user_name:
+            return None
+
+        account_name = s1_incident.get("agentRealtimeInfo", {}).get(
+            "accountName", "unknown"
+        )
+        account_id = s1_incident.get("agentRealtimeInfo", {}).get(
+            "accountId", "unknown"
+        )
+
+        if s1_incident.get("agentRealtimeInfo", {}).get("agentOsType", "") == "Windows":
+            if s1_incident.get("agentRealtimeInfo", {}).get("agentDomain", "") != "":
+                user_type = "windows-domain"
+            else:
+                user_type = "windows-local"
+        else:
+            user_type = "unix"
+            
+
+        desc = f"Affected user on SentinelOne Account {account_name} (with id: {account_id})"
+
+        endpoint_observable = stix2.UserAccount(
+            account_type=user_type,
+            user_id=user_name,
             object_marking_refs=[stix2.TLP_RED.id],
             custom_properties={"description": desc},
         )
@@ -222,9 +272,9 @@ class ConverterToStix:
 
         return incident_notes
 
-    def create_hash_indicators(self, s1_incident: dict, cti_incident_id: str) -> list:
+    def create_hash_observables(self, s1_incident: dict, cti_incident_id: str) -> list:
         """
-        Creates a Stix Indicator from a SentinelOne incident
+        Creates a Stix Observable from a SentinelOne incident
         alongside a relationship to the incident.
         """
 
@@ -240,22 +290,22 @@ class ConverterToStix:
                     f"[file:hashes.'{hash_label}'='{threat_info[hash_key]}']"
                 )
 
-        indicators = []
+        observables = []
         for pattern in available_patterns:
-            indicator = stix2.Indicator(
+            observable = stix2.Hash(
                 id=Indicator.generate_id(pattern),
                 created_by_ref=self.author,
                 pattern=pattern,
-                name="Malicious File Hash Indicator",
+                name="Potentially malicious file hash related to incident",
                 pattern_type="stix",
                 object_marking_refs=[stix2.TLP_RED.id],
             )
-            indicators.append(
-                self.create_relationship(cti_incident_id, indicator["id"], "related-to")
+            observables.append(
+                self.create_relationship(cti_incident_id, observable["id"], "related-to")
             )
-            indicators.append(indicator)
+            observables.append(observable)
 
-        return indicators
+        return observables
 
     def create_relationship(
         self, parent_id: str, child_id: str, relationship_type: str
