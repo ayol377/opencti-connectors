@@ -252,6 +252,12 @@ class IncidentConnector:
             )
             stix_objects.extend(attack_patterns_items)
 
+            ### List Of File Observables with Relationships to Incident
+            file_items = self.stix_client.create_file_observables(
+                s1_incident, cti_incident_id
+            )
+            stix_objects.extend(file_items)
+
             ### Informative log of all created objects
             message = ""
             if incident_items:
