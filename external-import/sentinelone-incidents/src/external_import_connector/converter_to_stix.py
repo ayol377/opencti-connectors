@@ -272,7 +272,7 @@ class ConverterToStix:
 
         return incident_notes
 
-    def create_hash_observables(self, s1_incident: dict, cti_incident_id: str) -> list:
+    def create_file_observables(self, s1_incident: dict, cti_incident_id: str) -> list:
         """
         Creates a Stix Observable from a SentinelOne incident
         alongside a relationship to the incident.
@@ -281,29 +281,27 @@ class ConverterToStix:
         self.helper.connector_logger.debug("Attempting to create Indicators")
 
         available_patterns = []
-        hash_types = {"sha256": "SHA-256", "sha1": "SHA-1", "md5": "MD5"}
         threat_info = s1_incident.get("threatInfo", {})
 
-        for hash_key, hash_label in hash_types.items():
-            if threat_info.get(hash_key):
-                available_patterns.append(
-                    f"[file:hashes.'{hash_label}'='{threat_info[hash_key]}']"
-                )
+        sha1 = threat_info.get("sha1", "")
+        sha256 = threat_info.get("sha256", "")
+        md5 = threat_info.get("md5", "")
+        hashes = {"SHA-256": sha256, "SHA-1": sha1, "MD5": md5}
+
+        observable = stix2.File(
+            id=Indicator.generate_id(hashes),
+            created_by_ref=self.author,
+            type=threat_info.get("fileExtensionType", "file"),
+            name=threat_info.get("threatName", ""),
+            hashes=hashes,
+            object_marking_refs=[stix2.TLP_RED],
+        )
 
         observables = []
-        for pattern in available_patterns:
-            observable = stix2.Hash(
-                id=Indicator.generate_id(pattern),
-                created_by_ref=self.author,
-                pattern=pattern,
-                name="Potentially malicious file hash related to incident",
-                pattern_type="stix",
-                object_marking_refs=[stix2.TLP_RED.id],
-            )
-            observables.append(
-                self.create_relationship(cti_incident_id, observable["id"], "related-to")
-            )
-            observables.append(observable)
+        observables.append(
+            self.create_relationship(cti_incident_id, observable["id"], "related-to")
+        )
+        observables.append(observable)
 
         return observables
 
