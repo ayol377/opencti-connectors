@@ -287,19 +287,27 @@ class ConverterToStix:
         sha256 = threat_info.get("sha256", "")
         md5 = threat_info.get("md5", "")
         hashes = {k: v for k, v in [("SHA-256", sha256), ("SHA-1", sha1), ("MD5", md5)] if v}
-
-        observable = stix2.File(
-            type="file",
-            name=threat_info.get("threatName", ""),
-            hashes=hashes,
-            object_marking_refs=[stix2.TLP_RED],
-        )
-
         observables = []
-        observables.append(
-            self.create_relationship(cti_incident_id, observable["id"], "related-to")
-        )
-        observables.append(observable)
+
+        if threat_info.get("isFileless", "") == "False":
+            if hashes:
+                observable = stix2.File(
+                    type="file",
+                    name=threat_info.get("threatName", ""),
+                    hashes=hashes,
+                object_marking_refs=[stix2.TLP_RED],
+            )
+            else:
+                observable = stix2.File(
+                    type="file",
+                    name=threat_info.get("threatName", ""),
+                    object_marking_refs=[stix2.TLP_RED],
+                )
+                
+            observables.append(
+                self.create_relationship(cti_incident_id, observable["id"], "related-to")
+            )
+            observables.append(observable)
 
         return observables
 
