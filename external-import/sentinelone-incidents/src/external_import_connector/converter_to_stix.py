@@ -286,7 +286,7 @@ class ConverterToStix:
         sha1 = threat_info.get("sha1", "")
         sha256 = threat_info.get("sha256", "")
         md5 = threat_info.get("md5", "")
-        hashes = {"SHA-256": sha256, "SHA-1": sha1, "MD5": md5}
+        hashes = {k: v for k, v in [("SHA-256", sha256), ("SHA-1", sha1), ("MD5", md5)] if v}
 
         observable = stix2.File(
             type="file",
