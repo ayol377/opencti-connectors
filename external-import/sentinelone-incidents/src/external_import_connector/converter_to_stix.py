@@ -1,5 +1,5 @@
 import stix2
-from stix2.v21 import CustomObject, properties
+from stix2 import properties, CustomObject
 from pycti import (
     AttackPattern,
     Identity,
