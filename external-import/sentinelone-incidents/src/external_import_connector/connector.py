@@ -126,6 +126,8 @@ class IncidentConnector:
         def is_applicable(incident_id):
             incident_notes = self.s1_client.fetch_incident_notes(incident_id)
             time = self.s1_client.fetch_incident(incident_id).get("threatInfo", {}).get("created_at", "")
+            self.helper.connector_logger.info(f"Incident time: {time}")
+            self.helper.connector_logger.info(f"Earliest timestamp: {self.config.earliest_timestamp}")
             if time < self.config.earliest_timestamp:
                 return False
             if incident_notes:
