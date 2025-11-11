@@ -293,8 +293,6 @@ class ConverterToStix:
 
         sha1 = threat_info.get("sha1", "")
         sha256 = threat_info.get("sha256", "")
-        self.helper.connector_logger.info("SHA1: " + sha1)
-        self.helper.connector_logger.info("SHA256: " + sha256)
         observables = []
         hashes = {}
         if sha256:
