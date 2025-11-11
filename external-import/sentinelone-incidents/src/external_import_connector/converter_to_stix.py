@@ -295,25 +295,25 @@ class ConverterToStix:
         sha256 = threat_info.get("sha256", "")
         self.helper.connector_logger.info("SHA1: " + sha1)
         self.helper.connector_logger.info("SHA256: " + sha256)
-
-        hashes = {
-            "sha256": sha256 if sha256 else None,
-            "sha1": sha1 if sha1 else None,
-        }
         observables = []
-
+        hashes = {}
         if sha256:
-            self.helper.connector_logger.info("Creating Stix Observable with hashes: " + str(hashes))
-            observable = stix2.File(
-                    type="file",
-                    name=threat_info.get("threatName", ""),
-                    hashes=hashes,
-                    object_marking_refs=[stix2.TLP_RED],
+            hashes["SHA-256"] = sha256
+        if sha1:
+            hashes["SHA-1"] = sha1
+        if not hashes:
+            return []
+        self.helper.connector_logger.info("Creating Stix Observable with hashes: " + str(hashes))
+        observable = stix2.File(
+                type="file",
+                name=threat_info.get("threatName", ""),
+                hashes=hashes,
+                object_marking_refs=[stix2.TLP_RED],
                 )
-            observables.append(
-                self.create_relationship(cti_incident_id, observable["id"], "related-to")
-            )
-            observables.append(observable)
+        observables.append(
+            self.create_relationship(cti_incident_id, observable["id"], "related-to")
+        )
+        observables.append(observable)
 
         return observables
 
