@@ -300,8 +300,6 @@ class ConverterToStix:
             "sha256": sha256 if sha256 else None,
             "sha1": sha1 if sha1 else None,
         }
-        hashes = {k: v for k, v in hashes.items() if v is not None}
-        self.helper.connector_logger.info("Hashes: " + hashes)
         observables = []
 
         if sha256:
