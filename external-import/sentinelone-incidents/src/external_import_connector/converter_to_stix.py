@@ -293,14 +293,18 @@ class ConverterToStix:
 
         sha1 = threat_info.get("sha1", "")
         sha256 = threat_info.get("sha256", "")
-        md5 = threat_info.get("md5", "")
         self.helper.connector_logger.info("SHA1: " + sha1)
         self.helper.connector_logger.info("SHA256: " + sha256)
-        self.helper.connector_logger.info("MD5: " + md5)
-        hashes = {k: v for k, v in [("SHA-256", sha256), ("SHA-1", sha1), ("MD5", md5)] if v}
+
+        hashes = {
+            "sha256": sha256 if sha256 else None,
+            "sha1": sha1 if sha1 else None,
+        }
+        hashes = {k: v for k, v in hashes.items() if v is not None}
+        self.helper.connector_logger.info("Hashes: " + hashes)
         observables = []
 
-        if hashes:
+        if sha256:
             self.helper.connector_logger.info("Creating Stix Observable with hashes: " + str(hashes))
             observable = stix2.File(
                     type="file",
