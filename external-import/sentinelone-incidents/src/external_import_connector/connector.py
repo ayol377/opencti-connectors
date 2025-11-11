@@ -128,10 +128,7 @@ class IncidentConnector:
             time = self.s1_client.fetch_incident(incident_id).get("threatInfo", {}).get("createdAt", "")
             time = datetime.fromisoformat(time)
             if time < datetime.fromisoformat(self.config.earliest_timestamp):
-                self.helper.connector_logger.info(f"Incident time: {time} is older than earliest timestamp: {self.config.earliest_timestamp}")
                 return False
-            else:
-                self.helper.connector_logger.info(f"Incident time: {time} is newer than earliest timestamp: {self.config.earliest_timestamp}")
             if incident_notes:
                 for note in incident_notes:
                     # if self.config.sign in note.get("text", ""):
