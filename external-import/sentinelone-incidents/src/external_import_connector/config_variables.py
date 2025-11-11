@@ -107,3 +107,12 @@ class ConfigConnector:
         if not configured_sign:
             raise ConnectorConfigurationError("SIGN is not configured")
         self.sign = configured_sign
+
+        configured_earliest_timestamp = get_config_variable(
+            "SENTINELONE_INCIDENTS_EARLIEST_TIMESTAMP",
+            ["sentinelone_incidents", "earliest_timestamp"],
+            self.load,
+        )
+        if not configured_earliest_timestamp:
+            raise ConnectorConfigurationError("EARLIEST_TIMESTAMP is not configured")
+        self.earliest_timestamp = configured_earliest_timestamp

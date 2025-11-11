@@ -125,10 +125,12 @@ class IncidentConnector:
 
         def is_applicable(incident_id):
             incident_notes = self.s1_client.fetch_incident_notes(incident_id)
+            time = self.s1_client.fetch_incident(incident_id).get("threatInfo", {}).get("created_at", "")
+            if time < self.config.earliest_timestamp:
+                return False
             if incident_notes:
                 for note in incident_notes:
                     # if self.config.sign in note.get("text", ""):
-
                     # Always import all incidents even without notes
                     return True
             else:
