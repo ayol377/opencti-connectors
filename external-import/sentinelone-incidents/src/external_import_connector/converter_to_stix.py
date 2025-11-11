@@ -1,4 +1,5 @@
 import stix2
+from stix2.v21 import CustomObject, properties
 from pycti import (
     AttackPattern,
     Identity,
@@ -7,6 +8,14 @@ from pycti import (
     Note,
     StixCoreRelationship,
 )
+
+
+@CustomObject(
+    'hostname',
+    [('value', properties.StringProperty(required=True))]
+)
+class _Hostname(object):
+    pass
 
 
 class ConverterToStix:
@@ -111,9 +120,8 @@ class ConverterToStix:
         )
         desc = f"Affected Host on SentinelOne Account {account_name} (with id: {account_id})"
 
-        endpoint_observable = stix2.UserAccount(
-            account_type="hostname",
-            user_id=endpoint_name,
+        endpoint_observable = _Hostname(
+            value=endpoint_name,
             object_marking_refs=[stix2.TLP_RED.id],
             custom_properties={"description": desc},
         )

@@ -232,7 +232,7 @@ class IncidentConnector:
             )
             stix_objects.extend(notes_items)
 
-            ### List Of Indicators  with Relationships to Incident
+            ### List Of Endpoints with Relationships to Incident
             endpoint_items = self.stix_client.create_endpoint_observable(
                 s1_incident, cti_incident_id
             )
