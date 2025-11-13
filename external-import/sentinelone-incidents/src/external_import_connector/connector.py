@@ -127,15 +127,15 @@ class IncidentConnector:
             incident_notes = self.s1_client.fetch_incident_notes(incident_id)
             time = self.s1_client.fetch_incident(incident_id).get("threatInfo", {}).get("createdAt", "")
             time = datetime.fromisoformat(time)
-            if time < datetime.fromisoformat(self.config.earliest_timestamp):
-                return False
-            if incident_notes:
-                for note in incident_notes:
-                    # if self.config.sign in note.get("text", ""):
-                    # Always import all incidents even without notes
-                    return True
-            else:
-                return None
+            if time >= datetime.fromisoformat(self.config.earliest_timestamp):
+                return True
+            # if incident_notes:
+            #     for note in incident_notes:
+            #         # if self.config.sign in note.get("text", ""):
+            #         # Always import all incidents even without notes
+            #         return True
+            # else:
+            #     return None
             return False
 
         # Retrieve all incidents from SentinelOne
