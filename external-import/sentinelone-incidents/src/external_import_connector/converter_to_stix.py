@@ -71,7 +71,7 @@ class ConverterToStix:
 
         external_s1_ref = stix2.ExternalReference(
             source_name="SentinelOne",
-            url=f"{s1_url}incidents/threats/{incident_id}/overview",
+            url=f"{s1_url}/incidents/threats/{incident_id}/overview",
             description="View Incident In SentinelOne",
             external_id=incident_id,
         )
