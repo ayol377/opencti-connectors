@@ -30,11 +30,11 @@ class ConverterToStix:
         """
         author = stix2.Identity(
             id=Identity.generate_id(
-                name="SentinelOne Incident Connector", identity_class="organization"
+                name="SentinelOne", identity_class="organization"
             ),
-            name="SentinelOne Incident Connector",
+            name="SentinelOne",
             identity_class="organization",
-            description="The SentinelOne Incident Connector",
+            description="The SentinelOne Connector",
         )
         return author
 
@@ -75,13 +75,24 @@ class ConverterToStix:
             description="View Incident In SentinelOne",
             external_id=incident_id,
         )
+        orgname = incident_data.get("agentRealtimeInfo", {}).get(
+            "siteName", "unknown"
+        )
+        author = stix2.Identity(
+            id=Identity.generate_id(
+                name=orgname, identity_class="organization"
+            ),
+            name=orgname,
+            identity_class="organization",
+            description="The SentinelOne Connector",
+        )
 
         name = incident_data.get("threatInfo", {}).get("threatName", "")
         created = incident_data.get("threatInfo", {}).get("identifiedAt", "")
 
         incident = stix2.Incident(
             id=Incident.generate_id(name, created),
-            created_by_ref=self.author,
+            created_by_ref=author,
             type="incident",
             name=name,
             description=description,
@@ -89,7 +100,7 @@ class ConverterToStix:
             created=created,
             external_references=[external_s1_ref] if external_s1_ref else None,
             object_marking_refs=[stix2.TLP_RED.id],
-            custom_properties={"source": self.author.name},
+            custom_properties={"source": author.name},
         )
 
         return [incident]
