@@ -172,6 +172,12 @@ class Connector:
             }
             # Process each STIX Object
             for entity in entities_list:
+                if "entity_type" not in entity:
+                    self.helper.log_warning(
+                        "Entity without 'entity_type' found, skipping.",
+                        {"entity": entity},
+                    )
+                    continue
                 obj_entity_type = entity["entity_type"]
                 if obj_entity_type == "StixFile" or StixCyberObservableTypes.has_value(
                     obj_entity_type
@@ -310,6 +316,12 @@ class Connector:
             )
 
             for entity in entities_list:
+                if "entity_type" not in entity:
+                    self.helper.log_warning(
+                        "Entity without 'entity_type' found, skipping.",
+                        {"entity": entity},
+                    )
+                    continue
                 obj_entity_type = entity["entity_type"]
                 if obj_entity_type == "StixFile" or StixCyberObservableTypes.has_value(
                     obj_entity_type
@@ -747,6 +759,12 @@ class Connector:
 
             # Process each STIX Object
             for entity in entities_list:
+                if "entity_type" not in entity:
+                    self.helper.log_warning(
+                        "Entity without 'entity_type' found, skipping.",
+                        {"entity": entity},
+                    )
+                    continue
                 obj_entity_type = entity["entity_type"]
                 if obj_entity_type == "StixFile" or StixCyberObservableTypes.has_value(
                     obj_entity_type
