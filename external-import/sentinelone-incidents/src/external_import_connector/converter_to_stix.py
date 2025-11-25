@@ -138,7 +138,7 @@ class ConverterToStix:
         )
 
         endpoint_relationship = self.create_relationship(
-            endpoint_observable["id"], cti_incident_id, "related-to"
+             cti_incident_id, endpoint_observable["id"], "related-to"
         )
 
         return [endpoint_observable, endpoint_relationship]
@@ -187,7 +187,7 @@ class ConverterToStix:
         )
 
         endpoint_relationship = self.create_relationship(
-            endpoint_observable["id"], cti_incident_id, "related-to"
+             cti_incident_id, endpoint_observable["id"], "related-to"
         )
 
         return [endpoint_observable, endpoint_relationship]
