@@ -261,10 +261,10 @@ class IncidentConnector:
             )
             stix_objects.extend(file_items)
 
-            ip_items = self.stix_client.create_ip_observables(
+            xdr_items = self.stix_client.create_XDR_observables(
                 s1_incident, cti_incident_id
             )
-            stix_objects.extend(ip_items)
+            stix_objects.extend(xdr_items)
 
             ### Informative log of all created objects
             message = ""

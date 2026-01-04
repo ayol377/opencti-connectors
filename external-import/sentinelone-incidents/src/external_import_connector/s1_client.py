@@ -56,20 +56,32 @@ class SentinelOneClient:
         )
         return self._send_api_req(url, "GET").get("data", [])
 
-    def fetch_related_ips(self, endpoint_name: str, sha1: str) -> list:
-
+    def fetch_related_ips(self, endpoint_name: str) -> list:
         url = self.config.xdr_url + XDR_API_PQ
-
-
         payload = {
-            "query": f"| filter src.process.image.sha1 = '{sha1}' and endpoint.name='{endpoint_name}' and event.type = 'IP Connect'| columns dst.ip.address",
-            "startTime":  "24h"
+            "query": f"| filter endpoint.name='{endpoint_name}' and event.type = 'IP Connect'| columns dst.ip.address",
+            "startTime":  "1h"
         }
-        
+        self.logger.info("Fetching related IPs from SentinelOne for endpoint: " + endpoint_name)
         result = self._send_xdr_api_req(url, "POST", payload)
         if not result:
             self.logger.error("Failed to fetch related IPs from SentinelOne with error: " + str(result))
             return []
+        self.logger.info("Fetched related IPs from SentinelOne for endpoint: " + endpoint_name)
+        return result.get("values", [])
+
+    def fetch_related_domains(self, endpoint_name: str) -> list:
+        url = self.config.xdr_url + XDR_API_PQ
+        payload = {
+            "query": f"| filter endpoint.name='{endpoint_name}' and event.type = 'DNS Resolved'| columns event.dns.request ",
+            "startTime":  "1h"
+        }
+        self.logger.info("Fetching related domains from SentinelOne for endpoint: " + endpoint_name)
+        result = self._send_xdr_api_req(url, "POST", payload)
+        if not result:
+            self.logger.error("Failed to fetch related IPs from SentinelOne with error: " + str(result))
+            return []
+        self.logger.info("Fetched related domains from SentinelOne for endpoint: " + endpoint_name)
         return result.get("values", [])
 
     def _send_api_req(

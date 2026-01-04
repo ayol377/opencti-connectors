@@ -1,3 +1,4 @@
+from multiprocessing import process
 import stix2
 from stix2 import properties, CustomObject
 from pycti import (
@@ -323,41 +324,41 @@ class ConverterToStix:
             self.create_relationship(cti_incident_id, observable["id"], "related-to")
         )
         observables.append(observable)
-        observables.extend(self.create_ip_observables(s1_incident, observable["id"]))
         return observables
 
-    def create_ip_observables(self, s1_incident: dict, observable_id: str) -> list:
-        self.helper.connector_logger.debug("Attempting to create File Observables")
-
-        threat_info = s1_incident.get("threatInfo", {})
-
-        sha1 = threat_info.get("sha1", "")
+    def create_XDR_observables(self, s1_incident: dict, cti_incident_id: str) -> list:
+        self.helper.connector_logger.debug("Attempting to create Observables from DV queries")
+        
         endpoint_name = s1_incident.get("agentRealtimeInfo", {}).get(
             "agentComputerName", ""
         )
+
+        ips = self.s1_client.fetch_related_ips(endpoint_name)
+        domains = self.s1_client.fetch_related_domains(endpoint_name)
+
         observables = []
-        if not sha1:
-            return []
-        self.helper.connector_logger.info("DV query with query > SHA1: " + sha1 + " and endpoint name: " + endpoint_name)
-        result = self.s1_client.fetch_related_ips(sha1, endpoint_name)
-        ips = []
-        for item in result:
-            ips.append(item[0])
-        
-        if not ips:
-            self.helper.connector_logger.info("No IPs found in DV for SHA1: " + sha1 + " and endpoint name: " + endpoint_name)
-            return []
-        
-        self.helper.connector_logger.info("Creating Stix Observable with IPs: " + str(len(ips)))
+        processed = []
         for ip in ips:
-            observable = stix2.IPv4Address(
-                value=ip,
-                object_marking_refs=[stix2.TLP_RED],
+            if ip not in processed:
+                processed.append(ip)
+                observables.append(stix2.IPv4Address(
+                    value=ip,
+                    object_marking_refs=[stix2.TLP_RED],
+                ))
+                observables.append(
+                    self.create_relationship(cti_incident_id, observable["id"], "related-to")
                 )
-            observables.append(
-                self.create_relationship(cti_incident_id, observable["id"], "related-to")
-            )
-            observables.append(observable)
+        for domain in domains:
+            if domain not in processed:
+                processed.append(domain)
+                observables.append(stix2.DomainName(
+                    value=domain,
+                    object_marking_refs=[stix2.TLP_RED],
+                ))
+                observables.append(
+                    self.create_relationship(cti_incident_id, observable["id"], "related-to")
+                )
+        self.helper.connector_logger.info("Creating Stix Observables for DV items: " + str(len(observables)))
 
         return observables
 
