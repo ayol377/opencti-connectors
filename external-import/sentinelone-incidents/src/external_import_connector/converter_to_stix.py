@@ -396,7 +396,11 @@ class ConverterToStix:
             self.helper.connector_logger.info("No SCOs/SROs found to bundle in ObservedData")
             return []
         
+        now = datetime.now(timezone.utc)
         data = stix2.ObservedData(
+            first_observed=now,
+            last_observed=now,
+            number_observed=len(filtered_stix_objects),
             created_by_ref=self.current_author,
             object_refs=filtered_stix_objects,
             object_marking_refs=[stix2.TLP_RED.id],
