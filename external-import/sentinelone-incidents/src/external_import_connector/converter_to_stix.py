@@ -344,7 +344,7 @@ class ConverterToStix:
         return observables
 
     def get_ipv4_observable(self, s1_incident: dict, cti_incident_id: str) -> list:
-        events = self.s1_client.fetch_related_ips(s1_incident.get("id", ""))
+        events = self.s1_client.fetch_related_ips(s1_incident.get("threatInfo", {}).get("threatId"))
         observables = []
         for event in events:
             ip=event.get("dstIp", "")
@@ -360,7 +360,7 @@ class ConverterToStix:
         return observables
 
     def get_domain_observable(self, s1_incident: dict, cti_incident_id: str) -> list:
-        events = self.s1_client.fetch_related_domains(s1_incident.get("id", ""))
+        events = self.s1_client.fetch_related_domains(s1_incident.get("threatInfo", {}).get("threatId"))
         observables = []
         for event in events:
             domain=event.get("dnsRequest", "")
