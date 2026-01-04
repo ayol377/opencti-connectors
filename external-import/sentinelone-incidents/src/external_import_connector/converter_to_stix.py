@@ -385,7 +385,6 @@ class ConverterToStix:
 
     def bundle_observed_data(self, cti_incident_id: str, stix_objects: list) -> list:
         data = stix2.ObservedData(
-            id=ObservedData.generate_id(cti_incident_id),
             created_by_ref=self.current_author,
             object_refs=stix_objects,
             object_marking_refs=[stix2.TLP_RED.id],
