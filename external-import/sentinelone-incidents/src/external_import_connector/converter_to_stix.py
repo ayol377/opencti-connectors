@@ -355,7 +355,7 @@ class ConverterToStix:
                 object_marking_refs=[stix2.TLP_RED],
                 )
             observables.append(
-                self.create_relationship(observable_id, observable["id"], "related-to")
+                self.create_relationship(cti_incident_id, observable["id"], "related-to")
             )
             observables.append(observable)
 
