@@ -263,7 +263,7 @@ class IncidentConnector:
             stix_objects.extend(file_items)
 
             observed_data_items = self.stix_client.create_observed_data(
-                s1_incident, cti_incident_id, endpoint_id
+                s1_incident, cti_incident_id
             )
             stix_objects.extend(observed_data_items)
 

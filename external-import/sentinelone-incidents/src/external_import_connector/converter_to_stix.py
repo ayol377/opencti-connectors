@@ -328,6 +328,7 @@ class ConverterToStix:
             first_observed=now,
             last_observed=now,
             number_observed=1,
+            labels=["Incident"],
             object_refs=[file_observable.id],
             created_by_ref=self.author,
             object_marking_refs=[stix2.TLP_RED.id],
@@ -341,12 +342,8 @@ class ConverterToStix:
         
         return observables
 
-    def create_observed_data(self, s1_incident: dict, cti_incident_id: str, endpoint_id: str = None) -> list:
+    def create_observed_data(self, s1_incident: dict, cti_incident_id: str) -> list:
         self.helper.connector_logger.debug("Attempting to create Observables from XDR queries")
-        
-        if not endpoint_id:
-            self.helper.connector_logger.info("No endpoint ID provided, skipping XDR observables")
-            return []
         
         endpoint_name = s1_incident.get("agentRealtimeInfo", {}).get(
             "agentComputerName", ""
@@ -414,9 +411,9 @@ class ConverterToStix:
             observables.extend(sco_list)
             observables.append(observed_data)
             observables.append(
-                self.create_relationship(endpoint_id, observed_data["id"], "consists-of")
+                self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
             )
-            self.helper.connector_logger.info(f"Created DeepVisibility ObservedData with {len(object_refs)} unique observables ({total_observations} total observations) related to endpoint {endpoint_name}")
+            self.helper.connector_logger.info(f"Created DeepVisibility ObservedData with {len(object_refs)} unique observables ({total_observations} total observations) related to incident")
         else:
             self.helper.connector_logger.info("No observables found from XDR queries")
 
