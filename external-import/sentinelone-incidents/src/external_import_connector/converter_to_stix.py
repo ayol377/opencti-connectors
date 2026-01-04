@@ -348,6 +348,8 @@ class ConverterToStix:
         observables = []
         if not events:
             return []
+        if len(events) == 0:
+            return []
         for event in events:
             ip=event.get("dstIp", "")
             observable = stix2.IPv4Address(
@@ -365,6 +367,8 @@ class ConverterToStix:
         events = self.s1_client.fetch_related_domains(s1_incident.get("threatInfo", {}).get("threatId"))
         observables = []
         if not events:
+            return []
+        if len(events) == 0:
             return []
         for event in events:
             domain=event.get("dnsRequest", "")

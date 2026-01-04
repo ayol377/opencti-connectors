@@ -61,13 +61,13 @@ class SentinelOneClient:
         url = self.config.s1_url + INCIDENT_RELATED_IPS_API_LOCATION_TEMPLATE.format(
             incident_id=incident_id
         )
-        return self._send_api_req(url, "GET").get("data", {})
+        return self._send_api_req(url, "GET").get("data", [])
 
     def fetch_related_domains(self, incident_id: str) -> list:
         url = self.config.s1_url + INCIDENT_RELATED_DOMAINS_API_LOCATION_TEMPLATE.format(
             incident_id=incident_id
         )
-        return self._send_api_req(url, "GET").get("data", {})
+        return self._send_api_req(url, "GET").get("data", [])
 
     def _send_api_req(
         self,
