@@ -1,5 +1,5 @@
-from multiprocessing import process
 import stix2
+from datetime import datetime, timezone
 from stix2 import properties, CustomObject
 from pycti import (
     AttackPattern,
@@ -326,8 +326,8 @@ class ConverterToStix:
         observables.append(observable)
         return observables
 
-    def create_XDR_observables(self, s1_incident: dict, cti_incident_id: str) -> list:
-        self.helper.connector_logger.debug("Attempting to create Observables from DV queries")
+    def create_observed_data(self, s1_incident: dict, cti_incident_id: str) -> list:
+        self.helper.connector_logger.debug("Attempting to create Observables from XDR queries")
         
         endpoint_name = s1_incident.get("agentRealtimeInfo", {}).get(
             "agentComputerName", ""
@@ -337,28 +337,50 @@ class ConverterToStix:
         domains = self.s1_client.fetch_related_domains(endpoint_name)
 
         observables = []
+        sco_list = []
+        object_refs = []
         processed = []
-        for ip in ips:
-            if ip not in processed:
-                processed.append(ip)
-                observables.append(stix2.IPv4Address(
-                    value=ip,
+        
+        for item in ips:
+            ip_value = item[0] if isinstance(item, list) and len(item) > 0 else str(item)
+            if ip_value and ip_value not in processed:
+                processed.append(ip_value)
+                ip_observable = stix2.IPv4Address(
+                    value=ip_value,
                     object_marking_refs=[stix2.TLP_RED],
-                ))
-                observables.append(
-                    self.create_relationship(cti_incident_id, observable["id"], "related-to")
                 )
-        for domain in domains:
-            if domain not in processed:
-                processed.append(domain)
-                observables.append(stix2.DomainName(
-                    value=domain,
+                sco_list.append(ip_observable)
+                object_refs.append(ip_observable.id)
+                
+        for item in domains:
+            domain_value = item[0] if isinstance(item, list) and len(item) > 0 else str(item)
+            if domain_value and domain_value not in processed:
+                processed.append(domain_value)
+                domain_observable = stix2.DomainName(
+                    value=domain_value,
                     object_marking_refs=[stix2.TLP_RED],
-                ))
-                observables.append(
-                    self.create_relationship(cti_incident_id, observable["id"], "related-to")
                 )
-        self.helper.connector_logger.info("Creating Stix Observables for DV items: " + str(len(observables)))
+                sco_list.append(domain_observable)
+                object_refs.append(domain_observable.id)
+        
+        if object_refs:
+            now = datetime.now(timezone.utc)
+            observed_data = stix2.ObservedData(
+                first_observed=now,
+                last_observed=now,
+                number_observed=1,
+                object_refs=object_refs,
+                created_by_ref=self.author,
+                object_marking_refs=[stix2.TLP_RED.id],
+            )
+            observables.extend(sco_list)
+            observables.append(observed_data)
+            observables.append(
+                self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
+            )
+            self.helper.connector_logger.info("Created ObservedData with " + str(len(object_refs)) + " observables from XDR queries")
+        else:
+            self.helper.connector_logger.info("No observables found from XDR queries")
 
         return observables
 
