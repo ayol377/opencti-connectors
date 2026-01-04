@@ -24,20 +24,22 @@ class ConverterToStix:
     def __init__(self, helper, s1_client=None):
         self.helper = helper
         self.s1_client = s1_client
-        self.author = self._create_author()
+        self.current_author = None
 
-    def _create_author(self) -> dict:
+    def _get_or_create_author(self, s1_incident: dict) -> stix2.Identity:
         """
-        Creates an author for the connector
+        Gets or creates the site organization as author from incident data
         """
+        orgname = s1_incident.get("agentRealtimeInfo", {}).get("siteName", "unknown")
         author = stix2.Identity(
             id=Identity.generate_id(
-                name="SentinelOne", identity_class="organization"
+                name=orgname, identity_class="organization"
             ),
-            name="SentinelOne",
+            name=orgname,
             identity_class="organization",
-            description="The SentinelOne Connector",
+            description="Site as Organization",
         )
+        self.current_author = author
         return author
 
     def create_incident(
@@ -77,17 +79,8 @@ class ConverterToStix:
             description="View Incident In SentinelOne",
             external_id=incident_id,
         )
-        orgname = incident_data.get("agentRealtimeInfo", {}).get(
-            "siteName", "unknown"
-        )
-        author = stix2.Identity(
-            id=Identity.generate_id(
-                name=orgname, identity_class="organization"
-            ),
-            name=orgname,
-            identity_class="organization",
-            description="The SentinelOne Connector",
-        )
+
+        author = self._get_or_create_author(incident_data)
 
         name = incident_data.get("threatInfo", {}).get("threatName", "")
         created = incident_data.get("threatInfo", {}).get("identifiedAt", "")
@@ -106,6 +99,26 @@ class ConverterToStix:
         )
 
         return [incident]
+
+    def create_organization_observables(
+        self, s1_incident: dict, cti_incident_id: str
+    ) -> list:
+        """
+        Returns the site organization (author) as an observable with relationship to incident
+        """
+        self.helper.connector_logger.debug(
+            "Returning organization observable"
+        )
+        
+        if not self.current_author:
+            self.helper.connector_logger.warning("No author set, skipping organization observable")
+            return []
+        
+        org_relationship = self.create_relationship(
+            cti_incident_id, self.current_author["id"], "related-to"
+        )
+        
+        return [self.current_author, org_relationship]
 
     def create_endpoint_observable(
         self, s1_incident: dict, cti_incident_id: str
@@ -227,7 +240,7 @@ class ConverterToStix:
 
             attack_pattern = stix2.AttackPattern(
                 id=AttackPattern.generate_id(pattern_name),
-                created_by_ref=self.author,
+                created_by_ref=self.current_author,
                 name=pattern_name,
                 description=pattern.get("description", ""),
                 object_marking_refs=[stix2.TLP_RED.id],
@@ -245,7 +258,7 @@ class ConverterToStix:
                 sub_name = "[sub] " + tactic.get("name", "")
                 sub_pattern = stix2.AttackPattern(
                     id=AttackPattern.generate_id(sub_name),
-                    created_by_ref=self.author,
+                    created_by_ref=self.current_author,
                     name=sub_name,
                     description=sub_desc,
                     external_references=[
@@ -284,7 +297,7 @@ class ConverterToStix:
             created = note.get("createdAt", "")
             incident_note = stix2.Note(
                 id=Note.generate_id(content=content, created=created),
-                created_by_ref=self.author,
+                created_by_ref=self.current_author,
                 content=content,
                 object_refs=[cti_incident_id],
                 object_marking_refs=[stix2.TLP_RED.id],
@@ -330,7 +343,7 @@ class ConverterToStix:
             number_observed=1,
             labels=["Incident"],
             object_refs=[file_observable.id],
-            created_by_ref=self.author,
+            created_by_ref=self.current_author,
             object_marking_refs=[stix2.TLP_RED.id],
         )
         
@@ -406,7 +419,7 @@ class ConverterToStix:
                 last_observed=now,
                 number_observed=total_observations,
                 object_refs=object_refs,
-                created_by_ref=self.author,
+                created_by_ref=self.current_author,
                 object_marking_refs=[stix2.TLP_RED.id],
                 labels=labels,
             )
@@ -430,7 +443,7 @@ class ConverterToStix:
         """
         relationship = stix2.Relationship(
             id=StixCoreRelationship.generate_id(relationship_type, parent_id, child_id),
-            created_by_ref=self.author,
+            created_by_ref=self.current_author,
             relationship_type=relationship_type,
             source_ref=parent_id,
             target_ref=child_id,

@@ -249,6 +249,11 @@ class IncidentConnector:
             )
             stix_objects.extend(account_items)
 
+            org_items = self.stix_client.create_organization_observables(
+                s1_incident, cti_incident_id
+            )
+            stix_objects.extend(org_items)
+
             ### List Of Attack Patterns with Relationships to Incident and Sub Attack Patterns with
             ### Relationships to the Attack Patterns
             attack_patterns_items = self.stix_client.create_attack_patterns(
