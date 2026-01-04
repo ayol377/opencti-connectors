@@ -240,6 +240,7 @@ class IncidentConnector:
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(endpoint_items)
+            endpoint_id = endpoint_items[0]["id"] if endpoint_items else None
 
 
             ### List Of Account Observables with Relationships to Incident
@@ -262,7 +263,7 @@ class IncidentConnector:
             stix_objects.extend(file_items)
 
             observed_data_items = self.stix_client.create_observed_data(
-                s1_incident, cti_incident_id
+                s1_incident, cti_incident_id, endpoint_id
             )
             stix_objects.extend(observed_data_items)
 

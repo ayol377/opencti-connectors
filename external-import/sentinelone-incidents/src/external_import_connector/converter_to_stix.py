@@ -341,72 +341,82 @@ class ConverterToStix:
         
         return observables
 
-    def create_observed_data(self, s1_incident: dict, cti_incident_id: str) -> list:
+    def create_observed_data(self, s1_incident: dict, cti_incident_id: str, endpoint_id: str = None) -> list:
         self.helper.connector_logger.debug("Attempting to create Observables from XDR queries")
+        
+        if not endpoint_id:
+            self.helper.connector_logger.info("No endpoint ID provided, skipping XDR observables")
+            return []
         
         endpoint_name = s1_incident.get("agentRealtimeInfo", {}).get(
             "agentComputerName", ""
         )
+        
+        if not endpoint_name:
+            self.helper.connector_logger.info("No endpoint name found, skipping XDR observables")
+            return []
 
         ips = self.s1_client.fetch_related_ips(endpoint_name)
         domains = self.s1_client.fetch_related_domains(endpoint_name)
 
         observables = []
-        ip_counts = {}
-        domain_counts = {}
-        now = datetime.now(timezone.utc)
+        sco_list = []
+        object_refs = []
+        processed = set()
+        total_observations = 0
         
         for item in ips:
             ip_value = item[0] if isinstance(item, list) and len(item) > 0 else str(item)
             if ip_value:
-                ip_counts[ip_value] = ip_counts.get(ip_value, 0) + 1
+                total_observations += 1
+                if ip_value not in processed:
+                    processed.add(ip_value)
+                    ip_observable = stix2.IPv4Address(
+                        value=ip_value,
+                        object_marking_refs=[stix2.TLP_RED],
+                    )
+                    sco_list.append(ip_observable)
+                    object_refs.append(ip_observable.id)
                 
         for item in domains:
             domain_value = item[0] if isinstance(item, list) and len(item) > 0 else str(item)
             if domain_value:
-                domain_counts[domain_value] = domain_counts.get(domain_value, 0) + 1
+                total_observations += 1
+                if domain_value not in processed:
+                    processed.add(domain_value)
+                    domain_observable = stix2.DomainName(
+                        value=domain_value,
+                        object_marking_refs=[stix2.TLP_RED],
+                    )
+                    sco_list.append(domain_observable)
+                    object_refs.append(domain_observable.id)
         
-        for ip_value, count in ip_counts.items():
-            ip_observable = stix2.IPv4Address(
-                value=ip_value,
-                object_marking_refs=[stix2.TLP_RED],
-            )
+        if object_refs:
+            now = datetime.now(timezone.utc)
+            ip_count = sum(1 for ref in object_refs if 'ipv4-addr' in ref)
+            domain_count = sum(1 for ref in object_refs if 'domain-name' in ref)
+            labels = ["DeepVisibility"]
+            if ip_count > 0:
+                labels.append(f"{ip_count} IP(s)")
+            if domain_count > 0:
+                labels.append(f"{domain_count} Domain(s)")
+            
             observed_data = stix2.ObservedData(
                 first_observed=now,
                 last_observed=now,
-                number_observed=count,
-                object_refs=[ip_observable.id],
+                number_observed=total_observations,
+                object_refs=object_refs,
                 created_by_ref=self.author,
                 object_marking_refs=[stix2.TLP_RED.id],
+                labels=labels,
             )
-            observables.append(ip_observable)
+            
+            observables.extend(sco_list)
             observables.append(observed_data)
             observables.append(
-                self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
+                self.create_relationship(endpoint_id, observed_data["id"], "consists-of")
             )
-                
-        for domain_value, count in domain_counts.items():
-            domain_observable = stix2.DomainName(
-                value=domain_value,
-                object_marking_refs=[stix2.TLP_RED],
-            )
-            observed_data = stix2.ObservedData(
-                first_observed=now,
-                last_observed=now,
-                number_observed=count,
-                object_refs=[domain_observable.id],
-                created_by_ref=self.author,
-                object_marking_refs=[stix2.TLP_RED.id],
-            )
-            observables.append(domain_observable)
-            observables.append(observed_data)
-            observables.append(
-                self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
-            )
-        
-        total_entities = len(ip_counts) + len(domain_counts)
-        if total_entities > 0:
-            self.helper.connector_logger.info(f"Created {total_entities} ObservedData objects from XDR queries ({len(ip_counts)} IPs, {len(domain_counts)} domains)")
+            self.helper.connector_logger.info(f"Created DeepVisibility ObservedData with {len(object_refs)} unique observables ({total_observations} total observations) related to endpoint {endpoint_name}")
         else:
             self.helper.connector_logger.info("No observables found from XDR queries")
 

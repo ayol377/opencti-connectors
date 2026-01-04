@@ -60,7 +60,7 @@ class SentinelOneClient:
         url = self.config.xdr_url + XDR_API_PQ
         payload = {
             "query": f"| filter endpoint.name='{endpoint_name}' and event.type = 'IP Connect'| columns dst.ip.address",
-            "startTime":  "1h"
+            "startTime":  "15m"
         }
         self.logger.info("Fetching related IPs from SentinelOne for endpoint: " + endpoint_name)
         result = self._send_xdr_api_req(url, "POST", payload)
@@ -74,7 +74,7 @@ class SentinelOneClient:
         url = self.config.xdr_url + XDR_API_PQ
         payload = {
             "query": f"| filter endpoint.name='{endpoint_name}' and event.type = 'DNS Resolved'| columns event.dns.request ",
-            "startTime":  "1h"
+            "startTime":  "15m"
         }
         self.logger.info("Fetching related domains from SentinelOne for endpoint: " + endpoint_name)
         result = self._send_xdr_api_req(url, "POST", payload)
