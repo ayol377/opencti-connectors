@@ -384,12 +384,27 @@ class ConverterToStix:
         return observables
 
     def bundle_observed_data(self, cti_incident_id: str, stix_objects: list) -> list:
+        # Filter to only include SCOs (observables) and SROs (relationships)
+        # Exclude SDOs like incident, attack-pattern, note, identity
+        excluded_sdo_types = ['incident', 'attack-pattern', 'note', 'identity', 'observed-data']
+        filtered_stix_objects = [
+            obj['id'] for obj in stix_objects 
+            if hasattr(obj, 'get') and obj.get('type') not in excluded_sdo_types
+        ]
+        
+        if not filtered_stix_objects:
+            self.helper.connector_logger.info("No SCOs/SROs found to bundle in ObservedData")
+            return []
+        
         data = stix2.ObservedData(
             created_by_ref=self.current_author,
-            object_refs=stix_objects,
+            object_refs=filtered_stix_objects,
             object_marking_refs=[stix2.TLP_RED.id],
         )
-        return data                
+        
+        relationship = self.create_relationship(cti_incident_id, data["id"], "related-to")
+        
+        return [data, relationship]                
 
     def create_relationship(
         self, parent_id: str, child_id: str, relationship_type: str
