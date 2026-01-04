@@ -384,15 +384,10 @@ class ConverterToStix:
         return observables
 
     def bundle_observed_data(self, cti_incident_id: str, stix_objects: list) -> list:
-        refs = []
-        for item in stix_objects:
-            refs.append(item["id"])
-
-
         data = stix2.ObservedData(
             id=ObservedData.generate_id(cti_incident_id),
             created_by_ref=self.current_author,
-            object_refs=refs,
+            object_refs=stix_objects,
             object_marking_refs=[stix2.TLP_RED.id],
         )
         return data                
