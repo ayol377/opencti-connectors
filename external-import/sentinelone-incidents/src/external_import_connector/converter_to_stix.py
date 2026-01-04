@@ -295,7 +295,7 @@ class ConverterToStix:
 
     def create_file_observables(self, s1_incident: dict, cti_incident_id: str) -> list:
         """
-        Creates a Stix Observable from a SentinelOne incident
+        Creates a Stix File Observable wrapped in ObservedData from a SentinelOne incident
         alongside a relationship to the incident.
         """
 
@@ -313,17 +313,32 @@ class ConverterToStix:
             hashes["SHA-1"] = sha1
         if not hashes:
             return []
+        
         self.helper.connector_logger.info("Creating Stix Observable with hashes: " + str(hashes))
-        observable = stix2.File(
-                type="file",
-                name=threat_info.get("threatName", ""),
-                hashes=hashes,
-                object_marking_refs=[stix2.TLP_RED],
-                )
-        observables.append(
-            self.create_relationship(cti_incident_id, observable["id"], "related-to")
+        
+        file_observable = stix2.File(
+            type="file",
+            name=threat_info.get("threatName", ""),
+            hashes=hashes,
+            object_marking_refs=[stix2.TLP_RED],
         )
-        observables.append(observable)
+        
+        now = datetime.now(timezone.utc)
+        observed_data = stix2.ObservedData(
+            first_observed=now,
+            last_observed=now,
+            number_observed=1,
+            object_refs=[file_observable.id],
+            created_by_ref=self.author,
+            object_marking_refs=[stix2.TLP_RED.id],
+        )
+        
+        observables.append(file_observable)
+        observables.append(observed_data)
+        observables.append(
+            self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
+        )
+        
         return observables
 
     def create_observed_data(self, s1_incident: dict, cti_incident_id: str) -> list:
@@ -337,48 +352,61 @@ class ConverterToStix:
         domains = self.s1_client.fetch_related_domains(endpoint_name)
 
         observables = []
-        sco_list = []
-        object_refs = []
-        processed = []
+        ip_counts = {}
+        domain_counts = {}
+        now = datetime.now(timezone.utc)
         
         for item in ips:
             ip_value = item[0] if isinstance(item, list) and len(item) > 0 else str(item)
-            if ip_value and ip_value not in processed:
-                processed.append(ip_value)
-                ip_observable = stix2.IPv4Address(
-                    value=ip_value,
-                    object_marking_refs=[stix2.TLP_RED],
-                )
-                sco_list.append(ip_observable)
-                object_refs.append(ip_observable.id)
+            if ip_value:
+                ip_counts[ip_value] = ip_counts.get(ip_value, 0) + 1
                 
         for item in domains:
             domain_value = item[0] if isinstance(item, list) and len(item) > 0 else str(item)
-            if domain_value and domain_value not in processed:
-                processed.append(domain_value)
-                domain_observable = stix2.DomainName(
-                    value=domain_value,
-                    object_marking_refs=[stix2.TLP_RED],
-                )
-                sco_list.append(domain_observable)
-                object_refs.append(domain_observable.id)
+            if domain_value:
+                domain_counts[domain_value] = domain_counts.get(domain_value, 0) + 1
         
-        if object_refs:
-            now = datetime.now(timezone.utc)
+        for ip_value, count in ip_counts.items():
+            ip_observable = stix2.IPv4Address(
+                value=ip_value,
+                object_marking_refs=[stix2.TLP_RED],
+            )
             observed_data = stix2.ObservedData(
                 first_observed=now,
                 last_observed=now,
-                number_observed=1,
-                object_refs=object_refs,
+                number_observed=count,
+                object_refs=[ip_observable.id],
                 created_by_ref=self.author,
                 object_marking_refs=[stix2.TLP_RED.id],
             )
-            observables.extend(sco_list)
+            observables.append(ip_observable)
             observables.append(observed_data)
             observables.append(
                 self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
             )
-            self.helper.connector_logger.info("Created ObservedData with " + str(len(object_refs)) + " observables from XDR queries")
+                
+        for domain_value, count in domain_counts.items():
+            domain_observable = stix2.DomainName(
+                value=domain_value,
+                object_marking_refs=[stix2.TLP_RED],
+            )
+            observed_data = stix2.ObservedData(
+                first_observed=now,
+                last_observed=now,
+                number_observed=count,
+                object_refs=[domain_observable.id],
+                created_by_ref=self.author,
+                object_marking_refs=[stix2.TLP_RED.id],
+            )
+            observables.append(domain_observable)
+            observables.append(observed_data)
+            observables.append(
+                self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
+            )
+        
+        total_entities = len(ip_counts) + len(domain_counts)
+        if total_entities > 0:
+            self.helper.connector_logger.info(f"Created {total_entities} ObservedData objects from XDR queries ({len(ip_counts)} IPs, {len(domain_counts)} domains)")
         else:
             self.helper.connector_logger.info("No observables found from XDR queries")
 
