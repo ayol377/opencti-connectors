@@ -332,7 +332,9 @@ class ConverterToStix:
         threat_info = s1_incident.get("threatInfo", {})
 
         sha1 = threat_info.get("sha1", "")
-        endpoint_name = s1_incident.get("agentComputerName", "")
+        endpoint_name = s1_incident.get("agentRealtimeInfo", {}).get(
+            "agentComputerName", ""
+        )
         observables = []
         if not sha1:
             return []
