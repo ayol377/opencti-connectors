@@ -122,7 +122,20 @@ class ConfigConnector:
         if not configured_xdr_url:
             raise ConnectorConfigurationError("XDR_URL is not configured")
         self.xdr_url = configured_xdr_url.rstrip("/")
-        
+
+        configured_xdr_api_key = get_config_variable(
+            "SENTINELONE_INCIDENTS_XDR_API_KEY",
+            ["sentinelone_incidents", "xdr_api_key"],
+            self.load,
+        )
+        if not configured_xdr_api_key:
+            raise ConnectorConfigurationError("XDR_API_KEY is not configured")
+        self.xdr_api_key = (
+            configured_xdr_api_key
+            if "Bearer " in configured_xdr_api_key
+            else f"Bearer {configured_xdr_api_key}"
+        )
+
         if not configured_earliest_timestamp:
             raise ConnectorConfigurationError("EARLIEST_TIMESTAMP is not configured")
         self.earliest_timestamp = configured_earliest_timestamp

@@ -159,7 +159,7 @@ class SentinelOneClient:
         HEADERS = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": self.config.s1_api_key,
+            "Authorization": self.config.xdr_api_key,
         }
 
         response = requests.request(
