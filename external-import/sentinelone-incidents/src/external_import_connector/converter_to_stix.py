@@ -323,7 +323,7 @@ class ConverterToStix:
             self.create_relationship(cti_incident_id, observable["id"], "related-to")
         )
         observables.append(observable)
-        observables.append(self.create_ip_observables(s1_incident, observable["id"]))
+        observables.extend(self.create_ip_observables(s1_incident, observable["id"]))
         return observables
 
     def create_ip_observables(self, s1_incident: dict, observable_id: str) -> list:

@@ -64,7 +64,7 @@ class SentinelOneClient:
             "query": f"| filter src.process.image.sha1 = '{sha1}' and endpoint.name='{endpoint_name}' and event.type = 'IP Connect'| columns dst.ip.address"
         }
         
-        result = self._send_xdr_api_req(url, "GET", payload)
+        result = self._send_xdr_api_req(url, "POST", payload)
         if not result:
             self.logger.error("Failed to fetch related IPs from SentinelOne with error: " + str(result))
             return []
@@ -184,7 +184,7 @@ class SentinelOneClient:
                     f"Too many requests to S1, waiting: {new_wait_time} seconds"
                 )
                 time.sleep(new_wait_time)
-                return self._send_api_req(
+                return self._send_xdr_api_req(
                     url, request_type, payload, new_wait_time, attempts + 1
                 )
             else:
