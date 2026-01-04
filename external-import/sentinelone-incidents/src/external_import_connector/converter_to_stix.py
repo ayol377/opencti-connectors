@@ -336,13 +336,14 @@ class ConverterToStix:
         observables = []
         if not sha1:
             return []
-        
+        self.helper.connector_logger.info("DV query with query > SHA1: " + sha1 + " and endpoint name: " + endpoint_name)
         result = self.s1_client.fetch_related_ips(sha1, endpoint_name)
         ips = []
         for item in result:
             ips.append(item[0])
         
         if not ips:
+            self.helper.connector_logger.info("No IPs found in DV for SHA1: " + sha1 + " and endpoint name: " + endpoint_name)
             return []
         
         self.helper.connector_logger.info("Creating Stix Observable with IPs: " + str(len(ips)))
