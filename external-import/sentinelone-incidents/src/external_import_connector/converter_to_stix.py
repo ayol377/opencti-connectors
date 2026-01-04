@@ -20,8 +20,9 @@ class _Hostname(object):
 
 class ConverterToStix:
 
-    def __init__(self, helper):
+    def __init__(self, helper, s1_client=None):
         self.helper = helper
+        self.s1_client = s1_client
         self.author = self._create_author()
 
     def _create_author(self) -> dict:

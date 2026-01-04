@@ -18,7 +18,7 @@ class IncidentConnector:
         self.to_process = []
 
         self.s1_client = SentinelOneClient(self.helper.connector_logger, self.config)
-        self.stix_client = ConverterToStix(self.helper)
+        self.stix_client = ConverterToStix(self.helper, self.s1_client)
 
         # self._setup_development_logging(self.helper)
 
