@@ -336,22 +336,7 @@ class ConverterToStix:
             object_marking_refs=[stix2.TLP_RED],
         )
         
-        now = datetime.now(timezone.utc)
-        observed_data = stix2.ObservedData(
-            first_observed=now,
-            last_observed=now,
-            number_observed=1,
-            labels=["Incident"],
-            object_refs=[file_observable.id],
-            created_by_ref=self.current_author,
-            object_marking_refs=[stix2.TLP_RED.id],
-        )
-        
         observables.append(file_observable)
-        observables.append(observed_data)
-        observables.append(
-            self.create_relationship(cti_incident_id, observed_data["id"], "related-to")
-        )
         observables.append(
             self.create_relationship(cti_incident_id, file_observable["id"], "uses")
         )
