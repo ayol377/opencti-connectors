@@ -113,6 +113,16 @@ class ConfigConnector:
             ["sentinelone_incidents", "earliest_timestamp"],
             self.load,
         )
+
+        configured_xdr_url = get_config_variable(
+            "SENTINELONE_INCIDENTS_XDR_URL",
+            ["sentinelone_incidents", "xdr_url"],
+            self.load,
+        )
+        if not configured_xdr_url:
+            raise ConnectorConfigurationError("XDR_URL is not configured")
+        self.xdr_url = configured_xdr_url.rstrip("/")
+        
         if not configured_earliest_timestamp:
             raise ConnectorConfigurationError("EARLIEST_TIMESTAMP is not configured")
         self.earliest_timestamp = configured_earliest_timestamp

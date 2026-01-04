@@ -14,6 +14,7 @@ INCIDENTS_API_LOCATION = "/web/api/v2.1/private/threat-groups?limit=50&sortBy=cr
 INCIDENT_NOTES_API_LOCATION_TEMPLATE = "/web/api/v2.1/threats/{incident_id}/notes?limit=1000&sortBy=createdAt&sortOrder=desc"
 INCIDENT_API_LOCATION_TEMPLATE = "/web/api/v2.1/private/threats/{incident_id}/analysis"
 
+XDR_API_PQ_IPS_TEMPLATE = "/api/powerQuery?query=| filter src.process.image.sha1 = '{sha1}' and endpoint.name='{endpoint_name}' and event.type = 'IP Connect'| columns dst.ip.address"
 
 class SentinelOneClient:
 
@@ -53,6 +54,14 @@ class SentinelOneClient:
             incident_id=incident_id
         )
         return self._send_api_req(url, "GET").get("data", [])
+
+    def fetch_related_ips(self, endpoint_name: str, sha1: str) -> list:
+
+        url = self.config.xdr_url + XDR_API_PQ_IPS_TEMPLATE.format(
+            sha1=sha1,
+            endpoint_name=endpoint_name,
+        )
+        return self._send_api_req(url, "GET").get("values", [])
 
     def _send_api_req(
         self,

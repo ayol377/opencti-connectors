@@ -297,9 +297,8 @@ class ConverterToStix:
         alongside a relationship to the incident.
         """
 
-        self.helper.connector_logger.debug("Attempting to create Indicators")
+        self.helper.connector_logger.debug("Attempting to create File Observables")
 
-        available_patterns = []
         threat_info = s1_incident.get("threatInfo", {})
 
         sha1 = threat_info.get("sha1", "")
@@ -323,6 +322,38 @@ class ConverterToStix:
             self.create_relationship(cti_incident_id, observable["id"], "related-to")
         )
         observables.append(observable)
+        observables.append(self.create_ip_observables(s1_incident, observable["id"]))
+        return observables
+
+    def create_ip_observables(self, s1_incident: dict, observable_id: str) -> list:
+        self.helper.connector_logger.debug("Attempting to create File Observables")
+
+        threat_info = s1_incident.get("threatInfo", {})
+
+        sha1 = threat_info.get("sha1", "")
+        endpoint_name = s1_incident.get("agentComputerName", "")
+        observables = []
+        if not sha1:
+            return []
+        
+        result = self.s1_client.fetch_related_ips(sha1, endpoint_name)
+        ips = []
+        for item in result:
+            ips.append(item.get("ip", ""))
+        
+        if not ips:
+            return []
+        
+        self.helper.connector_logger.info("Creating Stix Observable with IPs: " + str(hashes))
+        for ip in ips:
+            observable = stix2.IPv4Address(
+                value=ip,
+                object_marking_refs=[stix2.TLP_RED],
+                )
+            observables.append(
+                self.create_relationship(observable_id, observable["id"], "related-to")
+            )
+            observables.append(observable)
 
         return observables
 
