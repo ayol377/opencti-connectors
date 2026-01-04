@@ -340,12 +340,12 @@ class ConverterToStix:
         result = self.s1_client.fetch_related_ips(sha1, endpoint_name)
         ips = []
         for item in result:
-            ips.append(item.get("ip", ""))
+            ips.append(item[0])
         
         if not ips:
             return []
         
-        self.helper.connector_logger.info("Creating Stix Observable with IPs: " + str(hashes))
+        self.helper.connector_logger.info("Creating Stix Observable with IPs: " + str(len(ips)))
         for ip in ips:
             observable = stix2.IPv4Address(
                 value=ip,

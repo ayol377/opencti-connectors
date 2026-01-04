@@ -61,7 +61,11 @@ class SentinelOneClient:
             sha1=sha1,
             endpoint_name=endpoint_name,
         )
-        return self._send_api_req(url, "GET").get("values", [])
+        result = self._send_api_req(url, "GET")
+        if not result:
+            self.logger.error("Failed to fetch related IPs from SentinelOne with error: " + str(result))
+            return []
+        return result.get("values", [])
 
     def _send_api_req(
         self,
