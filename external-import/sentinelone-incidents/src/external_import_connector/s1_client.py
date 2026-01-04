@@ -15,7 +15,7 @@ INCIDENTS_API_LOCATION = "/web/api/v2.1/private/threat-groups?limit=50&sortBy=cr
 INCIDENT_NOTES_API_LOCATION_TEMPLATE = "/web/api/v2.1/threats/{incident_id}/notes?limit=1000&sortBy=createdAt&sortOrder=desc"
 INCIDENT_API_LOCATION_TEMPLATE = "/web/api/v2.1/private/threats/{incident_id}/analysis"
 INCIDENT_RELATED_IPS_API_LOCATION_TEMPLATE = "/web/api/v2.1/threats/{incident_id}/explore/events?eventSubTypes=TCPV4&limit=1000"
-INCIDENT_RELATED_DOMAINS_API_LOCATION_TEMPLATE = "/web/api/v2.1/threats/{incident_id}/explore/events?eventSubTypes=DNS4&limit=1000"
+INCIDENT_RELATED_DOMAINS_API_LOCATION_TEMPLATE = "/web/api/v2.1/threats/{incident_id}/explore/events?eventSubTypes=DNS&limit=1000"
 
 
 class SentinelOneClient:
