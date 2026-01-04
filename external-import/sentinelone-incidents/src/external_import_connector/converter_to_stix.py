@@ -354,7 +354,7 @@ class ConverterToStix:
             )
             observables.append(observable)
             observables.append(
-                self.create_relationship(cti_incident_id, observable["id"], "uses")
+                self.create_relationship(cti_incident_id, observable["id"], "related-to")
             )
             
         return observables
@@ -370,7 +370,7 @@ class ConverterToStix:
             )
             observables.append(observable)
             observables.append(
-                self.create_relationship(cti_incident_id, observable["id"], "uses")
+                self.create_relationship(cti_incident_id, observable["id"], "related-to")
             )
             
         return observables
