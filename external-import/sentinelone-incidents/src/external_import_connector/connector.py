@@ -240,8 +240,6 @@ class IncidentConnector:
                 s1_incident, cti_incident_id
             )
             stix_objects.extend(endpoint_items)
-            endpoint_id = endpoint_items[0]["id"] if endpoint_items else None
-
 
             ### List Of Account Observables with Relationships to Incident
             account_items = self.stix_client.create_user_account_observables(
@@ -267,10 +265,11 @@ class IncidentConnector:
             )
             stix_objects.extend(file_items)
 
-            observed_data_items = self.stix_client.create_observed_data(
-                s1_incident, cti_incident_id
-            )
-            stix_objects.extend(observed_data_items)
+            ip_items=self.stix_client.get_ipv4_observable(s1_incident, cti_incident_id)
+            stix_objects.extend(ip_items)
+
+            domain_items=self.stix_client.get_domain_observable(s1_incident, cti_incident_id)
+            stix_objects.extend(domain_items)
 
             ### Informative log of all created objects
             message = ""
