@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 from typing import Optional
@@ -61,7 +62,8 @@ class SentinelOneClient:
 
 
         payload = {
-            "query": f"| filter src.process.image.sha1 = '{sha1}' and endpoint.name='{endpoint_name}' and event.type = 'IP Connect'| columns dst.ip.address"
+            "query": f"| filter src.process.image.sha1 = '{sha1}' and endpoint.name='{endpoint_name}' and event.type = 'IP Connect'| columns dst.ip.address",
+            "startTime":  "24h"
         }
         
         result = self._send_xdr_api_req(url, "POST", payload)
@@ -166,7 +168,7 @@ class SentinelOneClient:
             method=request_type,
             url=url,
             headers=HEADERS,
-            data=payload,
+            data=json.dumps(payload),
             timeout=REQUEST_TIMEOUT,
         )
 
