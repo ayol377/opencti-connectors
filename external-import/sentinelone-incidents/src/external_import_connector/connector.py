@@ -271,6 +271,9 @@ class IncidentConnector:
             domain_items=self.stix_client.get_domain_observable(s1_incident, cti_incident_id)
             stix_objects.extend(domain_items)
 
+            observed_data = self.stix_client.bundle_observed_data(cti_incident_id, stix_objects)
+            stix_objects.extend(observed_data)
+
             ### Informative log of all created objects
             message = ""
             if incident_items:
