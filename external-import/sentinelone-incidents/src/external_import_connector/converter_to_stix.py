@@ -115,7 +115,7 @@ class ConverterToStix:
             return []
         
         org_relationship = self.create_relationship(
-            cti_incident_id, self.current_author["id"], "related-to"
+            self.current_author["id"], cti_incident_id, "related-to"
         )
         
         return [self.current_author, org_relationship]
@@ -153,7 +153,7 @@ class ConverterToStix:
         )
 
         endpoint_relationship = self.create_relationship(
-             cti_incident_id, endpoint_observable["id"], "related-to"
+            endpoint_observable["id"], cti_incident_id, "related-to"
         )
 
         return [endpoint_observable, endpoint_relationship]
@@ -202,7 +202,7 @@ class ConverterToStix:
         )
 
         endpoint_relationship = self.create_relationship(
-             cti_incident_id, endpoint_observable["id"], "related-to"
+            endpoint_observable["id"], cti_incident_id, "related-to"
         )
 
         return [endpoint_observable, endpoint_relationship]
@@ -338,7 +338,7 @@ class ConverterToStix:
         
         observables.append(file_observable)
         observables.append(
-            self.create_relationship(cti_incident_id, file_observable["id"], "uses")
+            self.create_relationship(observable["id"], cti_incident_id, file_observable["id"], "uses")
         )
         
         return observables
@@ -358,7 +358,7 @@ class ConverterToStix:
             )
             observables.append(observable)
             observables.append(
-                self.create_relationship(cti_incident_id, observable["id"], "related-to")
+                self.create_relationship(observable["id"], cti_incident_id, "related-to")
             )
             
         return observables
@@ -378,7 +378,7 @@ class ConverterToStix:
             )
             observables.append(observable)
             observables.append(
-                self.create_relationship(cti_incident_id, observable["id"], "related-to")
+                self.create_relationship(observable["id"], cti_incident_id,  "related-to")
             )
             
         return observables
