@@ -338,7 +338,7 @@ class ConverterToStix:
         
         observables.append(file_observable)
         observables.append(
-            self.create_relationship(observable["id"], cti_incident_id, file_observable["id"], "uses")
+            self.create_relationship(file_observable["id"], cti_incident_id, "uses")
         )
         
         return observables
